@@ -1,0 +1,262 @@
+/* =========================================
+   1. ГЛОБАЛЬНЫЕ НАСТРОЙКИ И ТАЙМИНГ
+   ========================================= */
+:root {
+    --master-duration: 60s;
+    --grass-dark: #1b5e20;
+    --grass-light: #2e7d32;
+    --sky-color: #020111;
+    --blue-team: #1565c0;
+    --red-team: #c62828;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    background: #000;
+    overflow: hidden;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+.theater {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: #000;
+}
+
+/* =========================================
+   2. КАМЕРА (РЕЖИССУРА)
+   ========================================= */
+.camera-rig {
+    width: 400vw;
+    height: 100vh;
+    position: relative;
+    animation: cameraLogic var(--master-duration) cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards;
+}
+
+@keyframes cameraLogic {
+    0%   { transform: translateX(0); }
+    15%  { transform: translateX(0); } /* Начальный план */
+    80%  { transform: translateX(-300vw); } /* Плавный проезд до ворот */
+    100% { transform: translateX(-300vw); }
+}
+
+/* =========================================
+   3. ОКРУЖЕНИЕ (НЕБО И СТАДИОН)
+   ========================================= */
+.sky-vault {
+    height: 40vh;
+    background: linear-gradient(to bottom, #020111 0%, #191621 100%);
+    position: relative;
+}
+
+.moon {
+    width: 80px; height: 80px;
+    background: #fdfdfd;
+    border-radius: 50%;
+    position: absolute; right: 10%; top: 15%;
+    box-shadow: 0 0 50px rgba(255,255,255,0.3);
+}
+
+.cloud {
+    background: rgba(255,255,255,0.1);
+    width: 150px; height: 40px;
+    border-radius: 50px;
+    position: absolute;
+}
+.cl1 { top: 10%; left: 5%; animation: float 20s infinite alternate; }
+.cl2 { top: 25%; left: 40%; animation: float 25s infinite alternate-reverse; }
+@keyframes float { to { transform: translateX(50px); } }
+
+.stands {
+    height: 15vh;
+    background: #222;
+    display: flex; flex-direction: column; gap: 2px;
+}
+.fans-row {
+    height: 33%;
+    background-image: radial-gradient(circle, #444 2px, transparent 3px);
+    background-size: 15px 15px;
+    animation: fanWave 0.5s infinite alternate;
+}
+@keyframes fanWave { from { opacity: 0.6; } to { opacity: 1; transform: translateY(-2px); } }
+
+/* ТАБЛО (ЛОГИКА СЧЕТА 3:3 -> 4:3) */
+.mega-scoreboard {
+    position: absolute;
+    top: 40px; left: 50vw;
+    width: 350px; background: #111;
+    border: 4px solid #444;
+    color: #fff; padding: 15px;
+    text-align: center; z-index: 100;
+}
+.board-main { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; }
+.digits { display: flex; font-size: 48px; font-weight: 800; color: #00ff00; overflow: hidden; height: 60px; }
+
+.score-flip {
+    display: flex; flex-direction: column;
+    animation: flipScore var(--master-duration) steps(1) forwards;
+}
+@keyframes flipScore {
+    0%, 88% { transform: translateY(0); } /* Показывает 3 */
+    89%, 100% { transform: translateY(-60px); } /* Показывает 4 после гола */
+}
+
+/* =========================================
+   4. ИГРОВОЕ ПОЛЕ
+   ========================================= */
+.pitch-container {
+    height: 45vh;
+    background: var(--grass-dark);
+    position: relative;
+}
+.grass-stripes {
+    width: 100%; height: 100%;
+    background: repeating-linear-gradient(90deg, 
+        transparent, transparent 10vw, 
+        rgba(0,0,0,0.1) 10vw, rgba(0,0,0,0.1) 20vw);
+}
+.field-markings {
+    position: absolute; inset: 0;
+    border-top: 5px solid rgba(255,255,255,0.3);
+}
+
+.goal-complex {
+    position: absolute; right: 20px; bottom: 10%;
+    width: 150px; height: 250px;
+}
+.goal-frame {
+    width: 100%; height: 100%;
+    border: 8px solid #fff; border-left: none;
+    position: relative; z-index: 5;
+}
+.net-canvas {
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(45deg, rgba(255,255,255,0.1) 0 2px, transparent 2px 10px);
+    animation: netImpact var(--master-duration) ease-out forwards;
+}
+@keyframes netImpact {
+    0%, 88.5% { transform: scaleX(1); }
+    89% { transform: scaleX(1.4); background: rgba(255,255,255,0.3); } /* Удар мяча в сетку */
+    92%, 100% { transform: scaleX(1.1); }
+}
+
+/* =========================================
+   5. МОДЕЛИ ИГРОКОВ (СКЕЛЕТНАЯ АНИМАЦИЯ)
+   ========================================= */
+.entity { position: absolute; bottom: 100px; width: 60px; height: 120px; }
+
+.character-model { position: relative; width: 100%; height: 100%; z-index: 10; }
+
+.head { width: 24px; height: 24px; background: #fcc; border-radius: 50%; margin: 0 auto; }
+.torso { width: 34px; height: 50px; background: #333; margin: -2px auto 0; border-radius: 5px; }
+
+.blue-striker .torso { background: var(--blue-team); }
+.red-defender .torso { background: var(--red-team); }
+.goalkeeper .torso { background: #ffa000; }
+
+.leg { 
+    width: 10px; height: 40px; background: #222; 
+    position: absolute; top: 70px; transform-origin: top; 
+}
+.leg-l { left: 18px; animation: runCycle 0.6s infinite; }
+.leg-r { left: 32px; animation: runCycle 0.6s infinite reverse; }
+
+@keyframes runCycle {
+    0% { transform: rotate(-35deg); }
+    100% { transform: rotate(35deg); }
+}
+
+.arm { width: 8px; height: 35px; background: inherit; position: absolute; top: 30px; transform-origin: top; }
+.arm-l { left: 8px; animation: runCycle 0.6s infinite reverse; }
+.arm-r { right: 8px; animation: runCycle 0.6s infinite; }
+
+/* =========================================
+   6. ПЕРЕМЕЩЕНИЕ (СЦЕНАРИЙ)
+   ========================================= */
+
+/* СИНИЙ ИГРОК */
+.blue-striker {
+    left: 20vw;
+    animation: strikerRun var(--master-duration) linear forwards;
+}
+@keyframes strikerRun {
+    0%, 15% { left: 20vw; transform: scaleX(1); }
+    75% { left: 320vw; transform: scaleX(1); }
+    85% { left: 340vw; transform: scaleX(1); } /* Пауза перед ударом */
+    90% { left: 350vw; transform: translateY(-30px); } /* Прыжок радости */
+    100% { left: 350vw; transform: translateY(-30px); }
+}
+
+/* МЯЧ (ВНУТРИ СИНЕГО) */
+.soccer-ball {
+    width: 22px; height: 22px; background: #fff;
+    border-radius: 50%; position: absolute;
+    bottom: -10px; left: 40px;
+    border: 2px solid #000;
+    background-image: radial-gradient(circle, #333 20%, transparent 25%);
+    background-size: 8px 8px;
+    animation: ballLogic var(--master-duration) linear forwards;
+}
+
+@keyframes ballLogic {
+    0%, 85.5% { transform: rotate(0); opacity: 1; }
+    /* Момент отрыва от ноги игрока на 86-й секунде (в процентах) */
+    86% { transform: translate(0, 0) rotate(0); }
+    88.5% { transform: translate(45vw, -120px) rotate(720deg); opacity: 1; } /* Полет в девятку */
+    89% { transform: translate(46vw, -40px) rotate(800deg); opacity: 1; } /* В сетке */
+    100% { transform: translate(46vw, -40px); opacity: 1; }
+}
+
+/* КРАСНЫЙ ЗАЩИТНИК */
+.red-defender {
+    left: 120vw;
+    animation: defenderLogic var(--master-duration) linear forwards;
+}
+@keyframes defenderLogic {
+    0%, 15% { left: 120vw; opacity: 1; }
+    60% { left: 280vw; transform: rotate(0); }
+    70% { left: 290vw; transform: rotate(90deg) translateY(40px); opacity: 0.6; } /* Упал */
+    100% { left: 290vw; transform: rotate(90deg); opacity: 0.6; }
+}
+
+/* ВРАТАРЬ */
+.goalkeeper {
+    left: 380vw;
+    animation: goalieLogic var(--master-duration) linear forwards;
+}
+@keyframes goalieLogic {
+    0%, 85% { transform: translate(0,0); }
+    87% { transform: translate(-30px, -60px) rotate(-45deg); } /* Прыжок мимо */
+    90% { transform: translate(-40px, 40px) rotate(-90deg); } /* Лежит */
+    100% { transform: translate(-40px, 40px) rotate(-90deg); }
+}
+
+/* =========================================
+   7. ФИНАЛЬНЫЕ ТРОФЕИ И ТИТРЫ
+   ========================================= */
+.trophy-drop {
+    position: absolute; left: 370vw; top: -200px;
+    font-size: 100px; z-index: 1000;
+    animation: trophyFall var(--master-duration) ease-in forwards;
+}
+@keyframes trophyFall {
+    0%, 93% { top: -200px; transform: rotate(0); }
+    96% { top: 50vh; transform: rotate(360deg); }
+    100% { top: 50vh; transform: rotate(360deg); }
+}
+
+.end-titles {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.8);
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    color: #fff; z-index: 9999; opacity: 0; pointer-events: none;
+    animation: showEnd var(--master-duration) forwards;
+}
+.end-titles h1 { font-size: 5rem; text-shadow: 0 0 20px #1565c0; }
+
+@keyframes showEnd {
+    0%, 94% { opacity: 0; }
+    97%, 100% { opacity: 1; }
+}
